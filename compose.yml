@@ -1,0 +1,15 @@
+version: '3.9'
+services:
+    vite:
+        image: yekqpapp4q/agy-portfolio:v1
+        container_name: mihras
+        ports:
+            - "9090:80"
+        volumes:
+            - ./agy_logs:/var/log/nginx
+        networks:
+            - agy_network
+volumes:
+    agy_log:
+networks:
+    agy_network:
