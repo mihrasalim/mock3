@@ -1,0 +1,76 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'kill'
+        DOCKERHUB_REPO = 'agy-portfolio'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/mihrasalim/mock3.git'
+            }
+        }
+
+        stage('Build Image') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
+            }
+        }
+
+        stage('Login and Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login \
+                            -u "$DOCKER_USER" \
+                            --password-stdin
+
+                        docker tag \
+                            ${IMAGE_NAME}:${BUILD_NUMBER} \
+                            ${DOCKER_USER}/${DOCKERHUB_REPO}:${BUILD_NUMBER}
+
+                        docker push \
+                            ${DOCKER_USER}/${DOCKERHUB_REPO}:${BUILD_NUMBER}
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to K8s') {
+            steps {
+                sh '''
+                    kubectl apply -f k8s.yml
+                    kubectl apply -f ingress.yml
+                    kubectl apply -f hpa.yml
+                    kubectl apply -f node-exporter.yml
+                    kubectl apply -f prometheus.yml
+                    kubectl apply -f grafana.yml
+                '''
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                sh '''
+                    kubectl get pods -A
+                    kubectl get deployments -A
+                    kubectl get services -A
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout || true'
+        }
+    }
+}
