@@ -35,7 +35,12 @@ npm run dev
 npm run build
 # output → /dist
 ```
-
+After install ingress run thos portforwarding
+kubectl port-forward \
+  -n ingress-nginx \
+  service/ingress-nginx-controller \
+  --address 0.0.0.0 \
+  9090:80
 ---
 
 [LinkedIn](https://www.linkedin.com/in/sreejith-sreenivas-110bb217a/) · [GitHub](https://github.com/SreejuZzz) · sreejithmsreenivas@gmail.com
