@@ -17,3 +17,8 @@ spec:
                 name: portfolio-service
                 port:
                   number: 80
+
+status:
+  loadBalancer:
+    ingress:
+      - ip: 15.206.66.139
