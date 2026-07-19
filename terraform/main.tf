@@ -57,3 +57,20 @@ resource "aws_instance" "server" {
     Name = "DevOps-Server"
   }
 }
+
+resource "aws_ebs_volume" "my_ebs" {
+  availability_zone = aws_instance.server.availability_zone
+  size              = 20
+  type              = "gp3"
+
+  tags = {
+    Name = "my-ebs-volume"
+  }
+}
+
+# Attach EBS Volume to EC2
+resource "aws_volume_attachment" "ebs_attachment" {
+  device_name = "/dev/sdf"
+  volume_id   = aws_ebs_volume.my_ebs.id
+  instance_id = aws_instance.server.id
+}
